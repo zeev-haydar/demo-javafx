@@ -15,5 +15,5 @@ Software project management yang digunakan yaitu Maven. Game ini merupakan game 
 `mvn clean javafx:run`
 
 ## Tips untuk membangun program serupa
-- Kamu bisa *copy and paste* file [pom.xml](pom.xml)
+- Kamu bisa mengikuti file [pom.xml](pom.xml). kalian bisa mencontoh bagian dependencies dan build nya, tetapi kalian bebas mengatur menyesuaikan proyek kalian.
 - Kalian bebas mencari cara mengimplementasi programnya. yang diberikan di sini merupakan salah satu contohnya.

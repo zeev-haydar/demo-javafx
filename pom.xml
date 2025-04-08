@@ -37,7 +37,7 @@
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>0.0.8</version>
                 <configuration>
-                    <mainClass>com.aja.simple.Main</mainClass> <!-- Replace with your actual main class -->
+                    <mainClass>com.aja.simple.Main</mainClass> <!-- Ganti sesuai struktur punya kalian -->
                     <commandlineArgs></commandlineArgs>
                 </configuration>
             </plugin>
