@@ -17,3 +17,4 @@ Software project management yang digunakan yaitu Maven. Game ini merupakan game 
 ## Tips untuk membangun program serupa
 - Kamu bisa mengikuti file [pom.xml](pom.xml). kalian bisa mencontoh bagian dependencies dan build nya, tetapi kalian bebas mengatur menyesuaikan proyek kalian.
 - Kalian bebas mencari cara mengimplementasi programnya. yang diberikan di sini merupakan salah satu contohnya.
+- Kalian boleh memakai software development tools lain seperti Gradle, atau yang lainnya.
