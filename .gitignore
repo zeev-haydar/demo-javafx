@@ -1,0 +1,43 @@
+# IDEs
+.vscode/
+.idea/
+*.iml
+
+# Maven
+/target/
+dependency-reduced-pom.xml
+release.properties
+
+# Logs
+*.log
+
+# Temporary files
+/tmp/
+*.tmp
+*.temp
+*.swp
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+
+# Environment & settings
+.env
+*.env
+*.bak
+
+# Java build output
+*.class
+
+# Scene Builder cache
+*.goutputstream-*
+*/__MACOSX/
+
+# Eclipse (if ever used)
+.project
+.classpath
+.settings/
+
+# IntelliJ run configs
+*.iws
+out/
