@@ -151,7 +151,7 @@ public class GameScene {
             for (int row = 0; row < SIZE; row++) {
                 for (int col = 0; col < SIZE; col++) {
                     if (bombs[row][col] && !tiles[row][col].isDisabled()) {
-                        tiles[row][col].setText("💣");
+                        tiles[row][col].setText("B");
                         tiles[row][col].getStyleClass().add("tile-open");
                         tiles[row][col].setDisable(true);
                     }
