@@ -1,6 +1,8 @@
 package com.aja.simple.scene;
 
 import com.aja.simple.Main;
+import com.aja.simple.component.Tile;
+
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -17,9 +19,7 @@ public class GameScene {
     private Scene scene;
     private static final int SIZE = 12;
     private static final int BOMB_COUNT = 12;
-    private final Button[][] tiles = new Button[SIZE][SIZE];
-    private final boolean[][] bombs = new boolean[SIZE][SIZE];
-    private final int[][] adjacentCounts = new int[SIZE][SIZE];
+    private final Tile[][] tiles = new Tile[SIZE][SIZE];
     private boolean firstClick = true;
 
     private Main mainApp; // Reference to the main application
@@ -37,16 +37,8 @@ public class GameScene {
 
         for (int row = 0; row < SIZE; row++) {
             for (int col = 0; col < SIZE; col++) {
-                Button tile = new Button();
-                tile.getStyleClass().add("tile");
-                tile.setPrefSize(40, 40);
-
-                final int r = row;
-                final int c = col;
-
-                // Set mouse click event handler for each tile
-                tile.setOnMouseClicked(e -> handleClick(r, c, e));
-
+                Tile tile = new Tile(row, col);
+                tile.setOnMouseClicked(e -> handleClick(tile, e));
                 tiles[row][col] = tile;
                 grid.add(tile, col, row);
             }
@@ -68,17 +60,19 @@ public class GameScene {
         return scene;
     }
 
-    private void handleClick(int row, int col, MouseEvent e) {
-        Button tile = tiles[row][col];
-    
+    private void handleClick(Tile tile, MouseEvent e) {
+        int row = tile.getRow();
+        int col = tile.getCol();
+
         if (e.getButton().equals(MouseButton.SECONDARY)) {
-            // System.out.println("Right-click detected on tile at (" + row + ", " + col + ")");
             if (!tile.isDisabled()) {
-                if ("F".equals(tile.getText())) {
+                if (tile.isFlagged()) {
                     tile.setText("");
+                    tile.setFlagged(false);
                     flagsPlaced--;
                 } else {
                     tile.setText("F");
+                    tile.setFlagged(true);
                     flagsPlaced++;
                 }
                 bombsLeft = BOMB_COUNT - flagsPlaced;
@@ -86,15 +80,14 @@ public class GameScene {
             }
             return;
         }
-    
-        if (!tile.getText().equals("F") && !tile.isDisabled() && e.getButton().equals(MouseButton.PRIMARY)) {
-            // System.out.println("Left-click detected on tile at (" + row + ", " + col + ")");
+
+        if (!tile.isFlagged() && !tile.isDisabled() && e.getButton().equals(MouseButton.PRIMARY)) {
             if (firstClick) {
                 placeBombs(row, col);
                 calculateAdjacentCounts();
                 firstClick = false;
             }
-    
+
             openTile(row, col);
         }
     }
@@ -106,10 +99,10 @@ public class GameScene {
         while (placed < BOMB_COUNT) {
             int r = rand.nextInt(SIZE);
             int c = rand.nextInt(SIZE);
+            Tile tile = tiles[r][c];
 
-            // Ensure bomb isn't placed near the first clicked cell (3x3 safe zone)
-            if (!bombs[r][c] && Math.abs(r - safeRow) > 1 || Math.abs(c - safeCol) > 1) {
-                bombs[r][c] = true;
+            if (!tile.hasBomb() && (Math.abs(r - safeRow) > 1 || Math.abs(c - safeCol) > 1)) {
+                tile.setBomb(true);
                 placed++;
             }
         }
@@ -118,113 +111,95 @@ public class GameScene {
     private void calculateAdjacentCounts() {
         for (int row = 0; row < SIZE; row++) {
             for (int col = 0; col < SIZE; col++) {
-                if (bombs[row][col]) continue;
+                Tile tile = tiles[row][col];
+                if (tile.hasBomb()) continue;
 
                 int count = 0;
                 for (int dr = -1; dr <= 1; dr++) {
                     for (int dc = -1; dc <= 1; dc++) {
                         int nr = row + dr;
                         int nc = col + dc;
-                        if (inBounds(nr, nc) && bombs[nr][nc]) {
+                        if (inBounds(nr, nc) && tiles[nr][nc].hasBomb()) {
                             count++;
                         }
                     }
                 }
-                adjacentCounts[row][col] = count;
+                tile.setAdjacentBombs(count);
             }
         }
     }
 
     private void openTile(int startRow, int startCol) {
-        if (!inBounds(startRow, startCol) || tiles[startRow][startCol].isDisabled()) {
-            return;
-        }
-
-        // Game over kalau bom yang dibuka
-        if (bombs[startRow][startCol]) {
-            tiles[startRow][startCol].setText("B");
-            tiles[startRow][startCol].setStyle("-fx-text-fill: red;");
-            tiles[startRow][startCol].getStyleClass().add("tile-open");
-            tiles[startRow][startCol].setDisable(true);
-
-            // Ungkap semua lokasi bom
-            for (int row = 0; row < SIZE; row++) {
-                for (int col = 0; col < SIZE; col++) {
-                    if (bombs[row][col] && !tiles[row][col].isDisabled()) {
-                        tiles[row][col].setText("B");
-                        tiles[row][col].getStyleClass().add("tile-open");
-                        tiles[row][col].setDisable(true);
-                    }
-                }
-            }
-
-            // Dialog game over
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Game Over");
-            alert.setHeaderText(null);
-            alert.setContentText("You clicked on a bomb!");
-            alert.showAndWait();
-            
-            // Balik ke menu
-            mainApp.showMenu();
-            return;
-        }
-    
         Queue<int[]> queue = new LinkedList<>();
         queue.offer(new int[]{startRow, startCol});
-    
-        // Di sini kita menggunakan BFS untuk membuka semua tile yang berdekatan
-        // dengan tile yang diklik, jika tile tersebut tidak memiliki bom di sekitarnya.
+
         while (!queue.isEmpty()) {
             int[] pos = queue.poll();
-            int row = pos[0], col = pos[1];
-    
-            if (!inBounds(row, col) || tiles[row][col].isDisabled()) 
+            int row = pos[0];
+            int col = pos[1];
+            Tile tile = tiles[row][col];
+
+            if (!inBounds(row, col) || tile.isDisabled()) 
                 continue;
-            
-            openedTiles++; // Increment jumlah tile yang dibuka
-            Button tile = tiles[row][col];
-            tile.getStyleClass().add("tile-open");
+
             tile.setDisable(true);
-    
-            int count = adjacentCounts[row][col];
+            tile.getStyleClass().add("tile-open");
+            tile.setRevealed(true);
+            openedTiles++;
+
+            if (tile.hasBomb()) {
+                tile.setText("B");
+                tile.setStyle("-fx-text-fill: red;");
+                revealAllBombs();
+                showAlert("Game Over", "You clicked on a bomb!");
+                mainApp.showMenu();
+                return;
+            }
+
+            int count = tile.getAdjacentBombs();
             if (count > 0) {
                 tile.setText(String.valueOf(count));
             } else {
                 for (int dr = -1; dr <= 1; dr++) {
                     for (int dc = -1; dc <= 1; dc++) {
                         if (dr != 0 || dc != 0) {
-                            queue.offer(new int[]{row + dr, col + dc});
+                            int nr = row + dr, nc = col + dc;
+                            if (inBounds(nr, nc)) {
+                                queue.offer(new int[]{nr, nc});
+                            }
                         }
                     }
                 }
             }
         }
 
-        // Cek apabila semua tile yang bukan bom sudah dibuka
-        // Jika semua tile yang bukan bom sudah dibuka, maka pemain menang
         if (openedTiles == SIZE * SIZE - BOMB_COUNT) {
-            // Ungkap semua lokasi bom
-            for (int row = 0; row < SIZE; row++) {
-                for (int col = 0; col < SIZE; col++) {
-                    if (bombs[row][col]) {
-                        tiles[row][col].setText("B");
-                        tiles[row][col].getStyleClass().add("tile-open");
-                        tiles[row][col].setDisable(true);
-                    }
-                }
-            }
-
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("You Win!");
-            alert.setHeaderText(null);
-            alert.setContentText("Congratulations! You've cleared the board!");
-            alert.showAndWait();
-
+            revealAllBombs();
+            showAlert("You Win!", "Congratulations! You've cleared the board!");
             mainApp.showMenu();
         }
     }
-    
+
+    private void revealAllBombs() {
+        for (int row = 0; row < SIZE; row++) {
+            for (int col = 0; col < SIZE; col++) {
+                Tile tile = tiles[row][col];
+                if (tile.hasBomb() && !tile.isDisabled()) {
+                    tile.setText("B");
+                    tile.getStyleClass().add("tile-open");
+                    tile.setDisable(true);
+                }
+            }
+        }
+    }
+
+    private void showAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
 
     private boolean inBounds(int row, int col) {
         return row >= 0 && row < SIZE && col >= 0 && col < SIZE;
