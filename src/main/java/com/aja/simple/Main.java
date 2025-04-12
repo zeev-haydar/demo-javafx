@@ -1,8 +1,6 @@
 package com.aja.simple;
 
-import com.aja.simple.scene.GameScene;
-import com.aja.simple.scene.MenuScene;
-
+import com.aja.simple.controller.MenuController;
 import javafx.application.Application;
 import javafx.geometry.Rectangle2D;
 import javafx.stage.Screen;
@@ -24,16 +22,10 @@ public class Main extends Application {
     }
 
     public void showMenu() {
-        MenuScene menu = new MenuScene(this);
-        primaryStage.setScene(menu.getScene());
-    }
-
-    public void startGame() {
-        GameScene game = new GameScene(this);
-        primaryStage.setScene(game.getScene());
+        new MenuController(primaryStage); // MenuController manages scene transitions
     }
 
     public static void main(String[] args) {
-        launch();
+        launch(args);
     }
 }

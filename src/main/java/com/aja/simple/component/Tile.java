@@ -3,61 +3,70 @@ package com.aja.simple.component;
 import javafx.scene.control.Button;
 
 public class Tile extends Button {
-    private final int row;
-    private final int col;
-    private boolean hasBomb;
-    private int adjacentBombs;
-    private boolean isRevealed;
-    private boolean isFlagged;
+    private final int row, col;
+    private boolean isBomb = false;
+    private boolean isOpened = false;
+    private boolean isFlagged = false;
+    private int adjacentBombs = 0;
 
     public Tile(int row, int col) {
         this.row = row;
         this.col = col;
-        this.hasBomb = false;
-        this.adjacentBombs = 0;
-        this.isRevealed = false;
-
         setPrefSize(40, 40);
         getStyleClass().add("tile");
     }
 
-    public int getRow() {
-         return row; 
+    public void open() {
+        if (!isOpened && !isFlagged) {
+            isOpened = true;
+            setDisable(true);
+            getStyleClass().add("tile-open");
+            if (isBomb) {
+                setText("B");
+                setStyle("-fx-text-fill: red;");
+            } else if (adjacentBombs > 0) {
+                setText(String.valueOf(adjacentBombs));
+            }
+        }
     }
 
-    public int getCol() { 
-        return col;
+    public void toggleFlag() {
+        if (!isOpened) {
+            isFlagged = !isFlagged;
+            setText(isFlagged ? "F" : "");
+        }
     }
 
-    public boolean hasBomb() {
-        return hasBomb; 
+    // Getters and setters
+    public int getRow() { 
+        return row; 
+    }
+
+    public int getCol() {
+        return col; 
+    }
+
+    public boolean isBomb() { 
+        return isBomb; 
+    }
+
+    public void setBomb(boolean bomb) { 
+        isBomb = bomb; 
+    }
+
+    public boolean isOpened() { 
+        return isOpened; 
     }
 
     public boolean isFlagged() { 
         return isFlagged; 
     }
 
-    public void setBomb(boolean hasBomb) {
-        this.hasBomb = hasBomb; 
-    }
-
-    public void setFlagged(boolean flagged) { 
-        this.isFlagged = flagged; 
-    }
-
-    public int getAdjacentBombs() {
-        return adjacentBombs; 
-    }
-
     public void setAdjacentBombs(int count) { 
         this.adjacentBombs = count; 
     }
 
-    public boolean isRevealed() { 
-        return isRevealed; 
-    }
-
-    public void setRevealed(boolean revealed) { 
-        this.isRevealed = revealed; 
+    public int getAdjacentBombs() { 
+        return adjacentBombs; 
     }
 }
