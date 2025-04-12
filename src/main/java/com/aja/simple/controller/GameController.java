@@ -6,7 +6,6 @@ import com.aja.simple.core.BaseController;
 import com.aja.simple.view.GameView;
 
 import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
@@ -24,26 +23,23 @@ public class GameController extends BaseController<GameModel, GameView> {
         this.model = new GameModel();
         this.view = new GameView(model);
 
-        // Initialize the back button for returning to the menu
-        Button backButton = view.getBackButton();
-        backButton.setOnAction(e -> {
-            // Switch back to the menu scene when back is clicked
-            new MenuController(stage);
+        bindEvents();
+        setScene();
+    }
+
+    @Override
+    protected void bindEvents() {
+        view.getBackButton().setOnAction(e -> {
+            // Handle back button action
+            new MenuController(getStage());
         });
 
-        // Bind mouse click events to the tiles
         for (Tile[] row : model.getTiles()) {
             for (Tile tile : row) {
                 tile.setOnMouseClicked(e -> handleClick(tile, e));
             }
         }
 
-        setScene(); // Set the GameView scene when the controller is initialized
-    }
-
-    @Override
-    protected void bindEvents() {
-        // Any additional event bindings specific to the game can be added here
     }
 
     private void handleClick(Tile tile, MouseEvent e) {
@@ -65,6 +61,7 @@ public class GameController extends BaseController<GameModel, GameView> {
             if (tile.isBomb()) {
                 revealAllBombs();
                 showAlert("Game Over", "You clicked on a bomb!");
+
                 // Transition back to the menu after game over
                 new MenuController(getStage());
             } else {
@@ -72,6 +69,7 @@ public class GameController extends BaseController<GameModel, GameView> {
                 if (openedTiles == GameModel.SIZE * GameModel.SIZE - GameModel.BOMB_COUNT) {
                     revealAllBombs();
                     showAlert("You Win!", "Congratulations! You've cleared the board!");
+
                     // Transition back to the menu after win
                     new MenuController(getStage());
                 }
